@@ -1,0 +1,24 @@
+@startuml test
+group
+    ' test comment
+    test->another : msg3
+    test->another : msg1
+    'group comment
+    alt test description
+        orca->pinguin : msg4
+        opt test descr
+            /' test comment
+            one more test '/
+            onemor->dolphin : msg1
+            onemor-->dolphin : msg2
+        end opt
+        sting->roth :msg
+        alt alt descr 1
+            bear->monkey: msg2
+        else alt else descr 2
+            tom->jerry: top top1
+            tom->jerry: top1 top2
+        end alt
+    end alt
+end group
+@enduml

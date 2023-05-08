@@ -1,0 +1,53 @@
+start: "@startuml" diagram_name? sequence_diagram "@enduml"
+
+sequence_diagram: (participant|legend|group|communication_step|parameter|activation|note)*
+
+diagram_name: DOUBLE_QUOTED_STRING
+participant: ("participant" | "actor") participant_name ("as" CNAME)? COLOR?
+parameter: CNAME _NL
+
+group_head: GROUP_TYPE TEXT?
+group_main_block: (communication_step|group|activation|note)*
+group_else_block: "else" TEXT (communication_step|group|activation|note)*
+group: comment? group_head group_main_block group_else_block? GROUP_END
+communication_step: comment? CONSUMER "-" ("[" COLOR "]")? "-"? ">" PROVIDER (ACTIVATION_SIGN)? ":" message
+message: (decomposed_message|single_message)
+single_message: TEXT
+decomposed_message: CALL_MESSAGE ("(" CALL_INPUT ")")? "()"? (":" CALL_OUTPUT)?
+CALL_MESSAGE: /[\w| |\.|,|\"|-]+/
+CALL_INPUT: CALL_PARAMS
+CALL_OUTPUT: CALL_PARAMS
+CALL_PARAMS: /[\w| |\.|=|,|\[|\]]+/
+comment: inline_comment|multiline_comment
+note: "note" SIDE? _NL /(.|\n)+?end note/
+
+legend: "legend" _NL /(.|\||\n)+?endlegend/
+
+activation: ACTIVATION_START (group|communication_step|activation|note)* ACTIVATION_END
+ACTIVATION_START: ACTOR"++"
+ACTIVATION_END: ACTOR"--"
+
+ACTIVATION_SIGN: "++"|"--"
+
+GROUP_END: /end[ \t\f]+(opt|group|alt|loop)/i
+SIDE: CNAME
+multiline_comment: /\/'(?!\/)[^']*(?:\r\n[^']*)*\'\//
+inline_comment: "'" TEXT
+TEXT: /.+/
+
+GROUP_TYPE: "group"|"opt"|"loop"|"alt"
+participant_name: DOUBLE_QUOTED_STRING
+ACTOR: CNAME
+PROVIDER: ACTOR
+CONSUMER: ACTOR
+MESSAGE: TEXT
+COLOR: "#"CNAME
+DOUBLE_QUOTED_STRING: /"[^"]*"/
+
+%import common.CNAME
+%import common.ESCAPED_STRING
+%import common.WORD
+%import common.DIGIT
+%import common.WS
+%import common.NEWLINE -> _NL
+%ignore WS
