@@ -5,9 +5,9 @@ from sys import argv
 import yaml
 from lark import Lark
 
-import tree_crawler as tc
-from PlantUmlTreeTransformer import PlantUmlTreeTransformer
-from output_producer import dump_to_excel
+from transformers.PlantUmlTreeTransformer import PlantUmlTreeTransformer
+from helpers.output_producer import dump_to_excel
+from helpers import dict_helper, tree_crawler as tc
 
 
 def get_opts(in_args):
@@ -42,7 +42,6 @@ def get_actors(in_tree):
 # TODO: fix this crap
 def process_comm_steps(in_tree):
     def get_message(cm_node) -> dict:
-        msg_dic = {}
         src = tc.get_first_node_by_type("message", cm_node)
         msg_node = tc.get_first_node_by_type("single_message", src)
         if msg_node is None:
@@ -59,34 +58,50 @@ def process_comm_steps(in_tree):
                 "Call Output": tc.get_token_value(msg_node, "CALL_OUTPUT")
             }
         )
-
         return msg_dic
+
+    def get_comment(cm_node) -> dict:
+        src_node = tc.get_first_node_by_type("comment", cm_node)
+        comment_text = tc.get_first_token(src_node)
+        if dict_helper.valid_yaml_string(comment_text):
+            res = dict_helper.from_yaml_string(comment_text)
+        else:
+            # fallback 'comment' dictionary key, if nothing if found
+            res = {"Comment": (comment_text or '')}
+        return res
 
     actors = get_actors(in_tree)
     out_tree = []
     tc.collect_nodes_by_type("communication_step", in_tree, out_tree)
-    steps = []
-    for comm_node in out_tree:
+    steps_list = []
+    for idx, comm_node in enumerate(out_tree):
+
         message_dic = get_message(comm_node)
+        comment_dic = get_comment(comm_node)
+
+        dir_ind = tc.get_first_child_node(
+            tc.get_first_node_by_type("direction_indicator", comm_node)
+        ).data
 
         step_node = {
             "Consumer": actors[tc.get_token_value(comm_node, "CONSUMER")].replace("\"", ""),
             "Provider": actors[tc.get_token_value(comm_node, "PROVIDER")].replace("\"", ""),
             "Communication Type": get_config()['colors'][tc.get_token_value(comm_node, "COLOR")],
+            "Direction": dir_ind.title(),
             "Call Message": message_dic["Call Message"],
             "Call Input": message_dic["Call Input"],
-            "Call Output": message_dic["Call Output"],
-            "Comments": tc.get_first_token(tc.get_first_node_by_type("comment", comm_node))
+            "Call Output": message_dic["Call Output"]
         }
 
-        steps.append(step_node)
+        step_node.update(comment_dic)
+        steps_list.append(step_node)
 
-    return steps
+    return steps_list
 
 
 def get_config() -> dict:
     with open("../config/diagram_setup.yaml", "r") as setup_file:
-        return yaml.safe_load(setup_file, )
+        return yaml.safe_load(setup_file)
 
 
 if __name__ == '__main__':
@@ -94,14 +109,16 @@ if __name__ == '__main__':
 
     dir_path = os.path.dirname(os.path.realpath(__file__))
 
-    if '-grammar' in my_args:
-        grammar_file = open(my_args['-grammar'])
+    if '-grammarFile' in my_args:
+        grammar_file = open(my_args['-grammarFile'])
         parser = Lark(grammar_file, debug=True)
     else:
         exit(1)
 
-    if '-file' in my_args:
-        f = open(my_args['-file'])
+    if '-inputFile' in my_args:
+        input_full_fpath = my_args['-inputFile']
+        input_directory_path, input_file_name = os.path.split(input_full_fpath)
+        f = open(input_full_fpath)
     else:
         exit(1)
 
@@ -114,5 +131,9 @@ if __name__ == '__main__':
     tree_transformed = PlantUmlTreeTransformer().transform(parser.parse(f.read()))
     steps = process_comm_steps(tree_transformed)
 
-    if '-output' in my_args:
-        dump_to_excel(steps, my_args['-output'])
+    if '-outputDir' in my_args:
+        out_path_dir = my_args['-outputDir']
+
+        file_name, file_extension = os.path.splitext(input_file_name)
+        out_excel_file = os.path.join(out_path_dir, str(file_name) + ".xlsx")
+        dump_to_excel(steps, out_excel_file)

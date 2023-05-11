@@ -1,4 +1,5 @@
 import lark
+from lark.tree import Tree
 
 
 def collect_nodes_by_type(item_name, in_tree, out_tree):
@@ -21,6 +22,14 @@ def get_first_node_by_type(item_name, in_tree) -> lark.Tree:
     return None
 
 
+def get_first_child_node(in_tree) -> str | Tree | None:
+    if isinstance(in_tree, lark.Tree):
+        for child in in_tree.children:
+            if type(child) == lark.Tree:
+                return child
+    return None
+
+
 def get_token_value(in_tree, token_type):
     if isinstance(in_tree, lark.Tree):
         for token in in_tree.children:
@@ -38,4 +47,3 @@ def get_first_token(in_tree):
     if isinstance(in_tree, lark.Token):
         return in_tree.value
     return None
-

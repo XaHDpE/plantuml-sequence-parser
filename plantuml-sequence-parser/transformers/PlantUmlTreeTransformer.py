@@ -32,12 +32,17 @@ class PlantUmlTreeTransformer(Transformer_InPlace):
                 first_token.column,
             )
 
-    def multiline_comment(self, tree: "Tree") -> Token:
+    def multiline_comment(self, tree: "Tree") -> Tree:
         first_token = tree.children[0]
-        return Token(
-            "COMMENT",
-            tree.children[0].replace("\n", "\\n")[3:-3],
-            first_token.pos_in_stream,
-            first_token.line,
-            first_token.column,
+        return Tree(
+            "multiline_comment",
+            [
+                Token(
+                    "TEXT",
+                    tree.children[0][3:-3],
+                    first_token.pos_in_stream,
+                    first_token.line,
+                    first_token.column,
+                )
+            ]
         )
