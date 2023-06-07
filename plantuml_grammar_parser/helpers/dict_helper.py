@@ -1,3 +1,5 @@
+import json
+
 import yaml
 
 
@@ -18,3 +20,8 @@ def get_value_safe(dict_in, key):
         return dict_in[key]
     except KeyError:
         return ''
+
+
+def to_file(dic, file_name):
+    with open(file_name, 'w') as convert_file:
+        convert_file.write(json.dumps(dic))

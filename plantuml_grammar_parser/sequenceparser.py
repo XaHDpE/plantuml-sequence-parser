@@ -1,31 +1,6 @@
-import logging
-import os
-from sys import argv
-
-import yaml
-from lark import Lark
-
-from transformers.PlantUmlTreeTransformer import PlantUmlTreeTransformer
-from helpers.output_producer import dump_to_excel
-from helpers import dict_helper, tree_crawler as tc
-
-
-def get_opts(in_args):
-    opts = {}  # Empty dictionary to store key-value pairs.
-    while in_args:  # While there are arguments left to parse...
-        if in_args[0][0] is '-':  # Found a "-name value" pair.
-            # print(argv[0][0])
-            if len(in_args) > 1:
-                if in_args[1][0] != '-':
-                    opts[in_args[0]] = in_args[1]
-                else:
-                    opts[in_args[0]] = True
-            elif len(in_args) == 1:
-                opts[in_args[0]] = True
-
-        # Reduce the argument list by copying it starting from index 1.
-        in_args = in_args[1:]
-    return opts
+from plantuml_grammar_parser.helpers import tree_crawler as tc, dict_helper
+from plantuml_grammar_parser.helpers.lark_helper import get_sequence_tree_transformed
+from plantuml_grammar_parser.helpers.ref_files_helper import get_config
 
 
 def get_actors(in_tree):
@@ -66,7 +41,7 @@ def process_comm_steps(in_tree):
         if dict_helper.valid_yaml_string(comment_text):
             res = dict_helper.from_yaml_string(comment_text)
         else:
-            # fallback 'comment' dictionary key, if nothing if found
+            # fallback 'comment' dictionary key, if nothing is found
             res = {"Comment": (comment_text or '')}
         return res
 
@@ -75,7 +50,6 @@ def process_comm_steps(in_tree):
     tc.collect_nodes_by_type("communication_step", in_tree, out_tree)
     steps_list = []
     for idx, comm_node in enumerate(out_tree):
-
         message_dic = get_message(comm_node)
         comment_dic = get_comment(comm_node)
 
@@ -84,6 +58,7 @@ def process_comm_steps(in_tree):
         ).data
 
         step_node = {
+            # "Order Num": idx + 1,
             "Consumer": actors[tc.get_token_value(comm_node, "CONSUMER")].replace("\"", ""),
             "Provider": actors[tc.get_token_value(comm_node, "PROVIDER")].replace("\"", ""),
             "Communication Type": get_config()['colors'][tc.get_token_value(comm_node, "COLOR")],
@@ -99,41 +74,8 @@ def process_comm_steps(in_tree):
     return steps_list
 
 
-def get_config() -> dict:
-    with open("../config/diagram_setup.yaml", "r") as setup_file:
-        return yaml.safe_load(setup_file)
+def get_dict(plantuml_txt) -> list:
+    tree_result = get_sequence_tree_transformed(plantuml_txt)
+    return process_comm_steps(tree_result)
 
 
-if __name__ == '__main__':
-    my_args = get_opts(argv)
-
-    dir_path = os.path.dirname(os.path.realpath(__file__))
-
-    if '-grammarFile' in my_args:
-        grammar_file = open(my_args['-grammarFile'])
-        parser = Lark(grammar_file, debug=True)
-    else:
-        exit(1)
-
-    if '-inputFile' in my_args:
-        input_full_fpath = my_args['-inputFile']
-        input_directory_path, input_file_name = os.path.split(input_full_fpath)
-        f = open(input_full_fpath)
-    else:
-        exit(1)
-
-    if '-pic' in my_args:
-        pic_loc = my_args['-pic']
-
-    if '-v' in my_args:
-        logging.basicConfig(level=logging.INFO)
-
-    tree_transformed = PlantUmlTreeTransformer().transform(parser.parse(f.read()))
-    steps = process_comm_steps(tree_transformed)
-
-    if '-outputDir' in my_args:
-        out_path_dir = my_args['-outputDir']
-
-        file_name, file_extension = os.path.splitext(input_file_name)
-        out_excel_file = os.path.join(out_path_dir, str(file_name) + ".xlsx")
-        dump_to_excel(steps, out_excel_file)
