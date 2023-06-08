@@ -1,9 +1,9 @@
-from plantuml_grammar_parser.helpers import tree_crawler as tc, dict_helper
-from plantuml_grammar_parser.helpers.lark_helper import get_sequence_tree_transformed
-from plantuml_grammar_parser.helpers.ref_files_helper import get_config
+from sequenceparser.helpers import tree_crawler as tc, dict_helper as dh, lark_helper
+from sequenceparser.helpers.ref_files_helper import get_config as gc
 
 
 def get_actors(in_tree):
+
     actors = {}
     actor_nodes = []
     tc.collect_nodes_by_type("participant", in_tree, actor_nodes)
@@ -38,8 +38,8 @@ def process_comm_steps(in_tree):
     def get_comment(cm_node) -> dict:
         src_node = tc.get_first_node_by_type("comment", cm_node)
         comment_text = tc.get_first_token(src_node)
-        if dict_helper.valid_yaml_string(comment_text):
-            res = dict_helper.from_yaml_string(comment_text)
+        if dh.valid_yaml_string(comment_text):
+            res = dh.from_yaml_string(comment_text)
         else:
             # fallback 'comment' dictionary key, if nothing is found
             res = {"Comment": (comment_text or '')}
@@ -61,7 +61,7 @@ def process_comm_steps(in_tree):
             # "Order Num": idx + 1,
             "Consumer": actors[tc.get_token_value(comm_node, "CONSUMER")].replace("\"", ""),
             "Provider": actors[tc.get_token_value(comm_node, "PROVIDER")].replace("\"", ""),
-            "Communication Type": get_config()['colors'][tc.get_token_value(comm_node, "COLOR")],
+            "Communication Type": gc()['colors'][tc.get_token_value(comm_node, "COLOR")],
             "Direction": dir_ind.title(),
             "Call Message": message_dic["Call Message"],
             "Call Input": message_dic["Call Input"],
@@ -75,7 +75,7 @@ def process_comm_steps(in_tree):
 
 
 def get_dict(plantuml_txt) -> list:
-    tree_result = get_sequence_tree_transformed(plantuml_txt)
+    tree_result = lark_helper.get_sequence_tree_transformed(plantuml_txt)
     return process_comm_steps(tree_result)
 
 

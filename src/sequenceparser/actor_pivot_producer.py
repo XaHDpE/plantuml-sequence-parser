@@ -1,10 +1,9 @@
 import argparse
 import os
 
-from plantuml_grammar_parser import sequenceparser
-from plantuml_grammar_parser.helpers import dict_helper
-from plantuml_grammar_parser.helpers.lark_helper import get_sequence_tree_transformed
-from plantuml_grammar_parser.helpers.output_producer import dump_to_excel_t
+import sequenceparser
+from helpers import dict_helper
+from helpers.lark_helper import get_sequence_tree_transformed
 
 
 def get_output_dic(dir_path):
