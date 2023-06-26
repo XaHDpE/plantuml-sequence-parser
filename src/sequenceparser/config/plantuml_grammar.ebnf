@@ -6,7 +6,7 @@ diagram_name: DOUBLE_QUOTED_STRING
 participant: ("participant" | "actor") participant_name ("as" CNAME)? COLOR?
 parameter: CNAME _NL
 
-group_head: GROUP_TYPE TEXT?
+group_head: GROUP_TYPE COLOR? TEXT?
 group_main_block: (communication_step|group|activation|note|ref)*
 group_else_block: "else" TEXT (communication_step|group|activation|note|ref)*
 group: comment? group_head group_main_block group_else_block? GROUP_END
@@ -15,13 +15,15 @@ message: (decomposed_message|single_message)
 single_message: TEXT
 decomposed_message: CALL_MESSAGE ("(" CALL_INPUT ")")? "()"? (":" CALL_OUTPUT)?
 comment: sme_inline_decomposed_comment|inline_comment|multiline_comment
-note: "note" SIDE? _NL /(.|\n)+?end note/
+note: note_singleline | note_multiline
+note_singleline: "note" "over" ACTOR ":" TEXT
+note_multiline: "note" SIDE? _NL /(.|\n)+?end note/
 direction_indicator: request|response
 request: ">"
 response: "->"
 ref: ref_single
 
-ref_single: "ref" "over" CNAME ":" TEXT
+ref_single: "ref" "over" ACTOR ":" TEXT _NL
 
 multiline_comment: /\/'(?!\/)[^']*(?:\r\n[^']*)*\'\//
 inline_comment: "'" /.+/

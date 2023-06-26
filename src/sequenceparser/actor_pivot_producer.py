@@ -1,9 +1,9 @@
 import argparse
 import os
 
-import sequenceparser
-from helpers import dict_helper
-from helpers.lark_helper import get_sequence_tree_transformed
+from sequenceparser import sequenceparser
+from sequenceparser.helpers import dict_helper
+from sequenceparser.helpers.lark_helper import get_sequence_tree_transformed
 
 
 def get_output_dic(dir_path):

@@ -1,5 +1,5 @@
-from sequenceparser.helpers import tree_crawler as tc, dict_helper as dh, lark_helper
-from sequenceparser.helpers.ref_files_helper import get_config as gc
+from .helpers import tree_crawler as tc, dict_helper as dh, lark_helper
+from .helpers.ref_files_helper import get_config as gc
 
 
 def get_actors(in_tree):

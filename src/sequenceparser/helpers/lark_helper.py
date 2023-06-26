@@ -1,5 +1,5 @@
 from lark import Lark
-import sequenceparser.helpers.ref_files_helper as rh
+from . import ref_files_helper as rh
 from sequenceparser.transformers.PlantUmlTreeTransformer import PlantUmlTreeTransformer
 
 
