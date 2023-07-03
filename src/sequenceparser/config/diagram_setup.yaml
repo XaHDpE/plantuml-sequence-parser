@@ -5,3 +5,4 @@ colors:
   "#blue": Cross-system REST Call interaction via API Gateway
   "#purple": Direct Cross-system interaction via REST Call
   "#green": Cross-system Streaming (Kafka) message interaction
+  "#brown": Reference to external process

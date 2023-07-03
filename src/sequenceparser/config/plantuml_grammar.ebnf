@@ -9,7 +9,7 @@ parameter: CNAME _NL
 group_head: GROUP_TYPE COLOR? TEXT?
 group_main_block: (communication_step|group|activation|note|ref)*
 group_else_block: "else" TEXT (communication_step|group|activation|note|ref)*
-group: comment? group_head group_main_block group_else_block? GROUP_END
+group: comment? group_head group_main_block (group_else_block*)? GROUP_END
 communication_step: comment? CONSUMER "-" ("[" COLOR "]")? direction_indicator PROVIDER (ACTIVATION_SIGN ACTIVATION_SIGN?)? ":" message
 message: (decomposed_message|single_message)
 single_message: TEXT
