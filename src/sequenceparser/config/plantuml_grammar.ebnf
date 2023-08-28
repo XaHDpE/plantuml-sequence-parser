@@ -4,11 +4,12 @@ sequence_diagram: (participant|legend|group|communication_step|parameter|activat
 
 diagram_name: DOUBLE_QUOTED_STRING
 participant: ("participant" | "actor") participant_name ("as" CNAME)? COLOR?
-parameter: CNAME _NL
+parameter: CNAME parameter_param? _NL
+parameter_param: /\d+/
 
 group_head: GROUP_TYPE COLOR? TEXT?
 group_main_block: (communication_step|group|activation|note|ref)*
-group_else_block: "else" TEXT (communication_step|group|activation|note|ref)*
+group_else_block: "else" TEXT? (communication_step|group|activation|note|ref)*
 group: comment? group_head group_main_block (group_else_block*)? GROUP_END
 communication_step: comment? CONSUMER "-" ("[" COLOR "]")? direction_indicator PROVIDER (ACTIVATION_SIGN ACTIVATION_SIGN?)? ":" message
 message: (decomposed_message|single_message)
@@ -37,10 +38,10 @@ ACTIVATION_START: ACTOR"++"
 ACTIVATION_END: ACTOR"--"
 ACTIVATION_SIGN: "++"|"--"
 
-CALL_MESSAGE: /[\w| |\.|,|\"|-]+/
+CALL_MESSAGE: /[^():\n]+/
 CALL_INPUT: CALL_PARAMS
 CALL_OUTPUT: CALL_PARAMS
-CALL_PARAMS: /[\w| |\.|=|,|\[|\]]+/
+CALL_PARAMS: /[^()\n]+/
 
 GROUP_END: /end[ \t\f]+(opt|group|alt|loop)/i
 SIDE: CNAME
